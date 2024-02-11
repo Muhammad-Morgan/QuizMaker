@@ -12,7 +12,11 @@ const Result = require('./models/results')
 
 const app = express()
 
-app.use(cors());
+app.use(cors({
+    origin: ['https://client-store-eight.vercel.app'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 app.use(express.json());
 
 mongoose.connect(process.env.URI)
