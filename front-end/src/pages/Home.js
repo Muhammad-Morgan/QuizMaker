@@ -37,6 +37,7 @@ const Home = () => {
                 style={{color: 'var(--primary-color-3)'}}
                 >Login and begain your quiz!</h4>
                 <Link
+                to='/login'
                 style={{
                     padding: '.5rem 1rem',
                     backgroundColor: 'var(--primary-color-2)',
