@@ -13,12 +13,12 @@ const Home = () => {
                     <div class="center-title">
                         <h3 className='mt-4 mb-3 mt-md-5 mb-lg-4'
                             style={{
-                                color: 'var(--navbar-color)'
+                                color: 'var(--text-color)'
                             }}
                         >Create a Quiz in a simple and time saving way !</h3>
                         <p
                             style={{
-                                color: 'var(--navbar-color)'
+                                color: 'var(--text-color)'
                             }}
                         >In today's digital age, content is released at an unprecedented rate. However, much of this content often fails to leave a lasting impact. Enter interactive content—particularly quizzes—which offers a fresh breath in an otherwise saturated market.</p>
                     </div>

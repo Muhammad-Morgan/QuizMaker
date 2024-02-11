@@ -13,7 +13,7 @@ const Result = require('./models/results')
 const app = express()
 
 app.use(cors({
-    origin: ['https://client-store-eight.vercel.app'],
+    origin: ['https://quiz-maker-client.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
