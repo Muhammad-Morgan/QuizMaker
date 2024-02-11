@@ -31,23 +31,14 @@ export const reducer = (state, action) => {
             loading: false
         }
     }
-    if(action.type === 'updateUser'){
+   if(action.type === 'updateInfo'){
         return {
             ...state,
             userDetails: {
                 ...state.userDetails,
                 name: action.payload.name,
                 myID: action.payload.myID,
-            }
-        }
-    }
-    if(action.type === 'updateUserLogin'){
-        return {
-            ...state,
-            userDetails: {
-                ...state.userDetails,
-                name: action.payload.name,
-                myID: action.payload.myID,
+                type: action.payload.type
             }
         }
     }

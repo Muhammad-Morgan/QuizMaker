@@ -1,56 +1,42 @@
 import React, { useState } from 'react'
-import { Link,useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { useGlobalContext } from '../utilities/Context'
 import axios from 'axios'
 const Nav = () => {
-    const { userDetails, showAlert, startLoading, endLoading, updateUserLogin } = useGlobalContext()
-    const { myID, name } = userDetails
+    const { userDetails, showAlert, updateInfo } = useGlobalContext()
+    const { myID, name, type } = userDetails
     const navigate = useNavigate()
     const [links, setLinks] = useState(false)
     const handleLogOut = (e) => {
         e.preventDefault()
-        startLoading()
-        axios.delete(`http://localhost:5000/logout/${myID}`).then(({ data }) => {
-            if (data === 'logged out') {
-                showAlert({
-                    msg: data,
-                    type: 'success'
-                })
-            } if (data === 'already logged out') {
-                showAlert({
-                    msg: data,
-                    type: 'danger'
-                })
-            }
-            updateUserLogin({
-                name: '',
-                myID: ''
+        axios.delete(`http://localhost:5000/logout`).then(({ data }) => {
+            const { msg, type } = data
+            showAlert({
+                msg,
+                type
             })
-            localStorage.setItem('localID', '')
+            localStorage.removeItem('localToken')
+            updateInfo({ name: '', myID: '', type: '' })
             navigate('/login')
-            endLoading()
         }).catch(err => console.log(err))
     }
     return (
-        <nav className="navbar bg-body-tertiary mb-5">
+        <nav className="navbar shadow-sm bg-body-tertiary mb-4">
             <div className="container">
-                <div className='quiz-logo'>
+                <div
+                className='d-flex align-items-center justify-content-between'>
                     <Link
                         style={{ textDecoration: 'none' }}
                         to='/'
-                        className='quiz-logo'
+                        className='quiz-logo me-3 me-md-4 me-lg-5'
                     >QUIZ !!</Link>
-                </div>
                 <div className='dum d-none d-sm-block'>
-                    {myID && (<h5
-                        style={{
-                            color: 'var(--primary-color-1)',
-                            marginBottom: '0',
-                            fontWeight: '400'
-                        }}
-                    >Hello {name} !</h5>)}
+                    {myID && (<p
+                     className='fs-5 fw-lighter p-0 m-0 text-secondary'   
+                    >Hello {name} !</p>)}
+                </div>
                 </div>
                 {myID ?
                     <ul
@@ -58,7 +44,7 @@ const Nav = () => {
                             margin: '0'
                         }}
                         className="links-navbar-list d-none d-sm-block">
-                        <Link
+                        {type === 'instructor' && <Link
                             style={{
                                 border: 'none'
                             }}
@@ -66,14 +52,16 @@ const Nav = () => {
                             className="navbar-brand-cstm-hor">
                             Create a quiz
                         </Link>
-                        <Link
-                        to='/allquizes'
+                        }
+                        {type === 'student' && <Link
+                            to='/allquizes'
                             style={{
                                 border: 'none'
                             }}
                             className="navbar-brand-cstm-hor">
                             All Quizes
                         </Link>
+                        }
                         <button
                             onClick={handleLogOut}
                             style={{

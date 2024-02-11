@@ -5,17 +5,13 @@ import Loading from '../components/Loading'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import axios from 'axios'
+import { jwtDecode } from 'jwt-decode'
 const Singlequiz = () => {
-    const { loading, startLoading, endLoading,showAlert } = useGlobalContext()
+    const { loading, startLoading, endLoading, showAlert, userDetails, updateInfo } = useGlobalContext()
     const navigate = useNavigate()
-    var userId = localStorage.getItem('localID')
-    const [namee, setNamee] = useState('')
     const [resultCondition, setResultCondition] = useState(false)
+    const [quizName, setQuizName] = useState('')
     const [pageQuiz, setPageQuiz] = useState([])
-    const [score, setScore] = useState({
-        result: 0,
-        mistakes: []
-    })
     const [value, setValue] = useState(0)
     const { id } = useParams()
     const getQuizez = async () => {
@@ -23,6 +19,7 @@ const Singlequiz = () => {
         axios.get(`http://localhost:5000/getsinglequiz?id=${id}`).then(({ data }) => {
             if (data) {
                 const { name, quiz } = data
+                setQuizName(name)
                 var quizQuestions = quiz.map((item) => {
                     item.answer = ''
                     return item
@@ -70,7 +67,7 @@ const Singlequiz = () => {
     }
     const handleSubmit = (e) => {
         e.preventDefault()
-        axios.post(`http://localhost:5000/submitquiz?id=${id}&userID=${userId}`, pageQuiz).then(() => {
+        axios.post(`http://localhost:5000/submitquiz?id=${id}&userID=${userDetails.myID}&username=${userDetails.name}`, pageQuiz).then(() => {
             showAlert({
                 msg: 'Results were saved',
                 type: 'success'
@@ -78,47 +75,67 @@ const Singlequiz = () => {
             setResultCondition(true)
         }).catch(err => console.log(err))
     }
-    useEffect(() => { getQuizez() }, [])
     useEffect(() => {
-        var id = localStorage.getItem('localID')
-        if (loading === false && (id === '')) {
-            navigate('/login')
+        var localToken = localStorage.getItem('localToken')
+        axios.get(`http://localhost:5000/auth?token=${localToken}`).then(({ data }) => {
+            const { type } = data
+            if (type === 'failed') {
+                const { msg } = data
+                showAlert({ msg, type: 'danger' })
+                navigate('/login')
+            }
+            else {
+                const { myToken } = data
+                const myData = jwtDecode(myToken)
+                const { name, myID, type } = myData
+                updateInfo({ name, myID, type })
+            }
+        }).catch(err => console.log(err))
+    }, [userDetails.name])
+    useEffect(() => {
+        if (userDetails.type === 'instructor') {
+            navigate('/createquiz')
         }
-    }, [])
+    }, [userDetails.type])
+    useEffect(() => { getQuizez() }, [])
     if (loading) {
         return <Loading />
     }
     if (resultCondition) {
         return (
-            <div className="card mt-3" style={{
+            <div className="card mt-5 shadow" style={{
                 width: '90%',
-                paddingBlock: '1.5rem',
+                paddingBlock: '3rem',
                 paddingInline: '2rem',
                 marginInline: 'auto',
                 maxWidth: '1150px',
                 border: 'none',
                 boxShadow: '1px 1px 2px 1px rgba(0,0,0,.1)',
+                backgroundColor: '#fff'
             }}>
-                <div className="card-body">
-                    <h2>View your results</h2>
-                    <Link to={`/results/${userId}`} className="my-new-btn-submit">Submit your Quiz !
+                <div style={{marginInline: 'auto'}} className="card-body d-flex flex-column align-items-center">
+                    <h2 className='mb-5 text-center fs-2 fw-light'>View your results !</h2>
+                    <Link to={`/results/${userDetails.myID}`} 
+                    style={{width: 'fit-content', paddingInline: '2.2rem'}}
+                    className="my-new-btn-submit text-center shadow">Show
                     </Link>
                 </div>
             </div>)
     }
     return (
-        <div className="card mt-3" style={{
-            width: '90%',
+        <div className="card mt-5 shadow" style={{
+            width: '57%',
             paddingBlock: '1.5rem',
             paddingInline: '2rem',
             marginInline: 'auto',
             maxWidth: '1150px',
             border: 'none',
             boxShadow: '1px 1px 2px 1px rgba(0,0,0,.1)',
+            backgroundColor: '#fff'
         }}>
             <h2
                 // style={{ color: 'var(--text-color)' }}
-                className="card-title mb-4 text-capitalize">{namee}</h2>
+                className="card-title mb-4 text-capitalize">{quizName}</h2>
             <div className="card-body"
 
             >

@@ -4,9 +4,10 @@ import { faListCheck } from '@fortawesome/free-solid-svg-icons'
 import { useGlobalContext } from '../utilities/Context'
 import { useNavigate } from 'react-router-dom'
 import Loading from '../components/Loading'
+import { jwtDecode } from 'jwt-decode'
 import axios from 'axios'
 const Createquiz = () => {
-    const { showAlert, loading } = useGlobalContext()
+    const { showAlert, loading, updateInfo, userDetails } = useGlobalContext()
     const navigate = useNavigate()
     const [submitCon, setSubmitCon] = useState(false)
     const [name, setName] = useState('')
@@ -61,16 +62,17 @@ const Createquiz = () => {
     }
     const handleSubmit = (e) => {
         e.preventDefault()
-        var userID = localStorage.getItem('localID')
+        var localToken = localStorage.getItem('localToken')
+        const decodedToken = jwtDecode(localToken)
         if (name) {
             var lName = name.toLowerCase()
-            axios.post(`http://localhost:5000/quizcreated/${userID}`, { name: lName, quiz }).then(() => {
+            axios.post(`http://localhost:5000/quizcreated/${decodedToken.myID}`, { name: lName, quiz }).then(({data}) => {
+                const {msg,type}=data
                 showAlert({
-                    msg: 'Quiz created',
-                    type: 'success'
+                    msg,
+                    type
                 })
             }).catch(err => console.log(err))
-            navigate('/allquizes')
         }
         else {
             showAlert({
@@ -86,17 +88,33 @@ const Createquiz = () => {
         })
     }
     useEffect(() => {
-        var id = localStorage.getItem('localID')
-        if (loading === false && (id === '')) {
-            navigate('/login')
+        var localToken = localStorage.getItem('localToken')
+        axios.get(`http://localhost:5000/auth?token=${localToken}`).then(({ data }) => {
+            const { type } = data
+            if (type === 'failed') {
+                const { msg } = data
+                showAlert({ msg, type: 'danger' })
+                navigate('/login')
+            }
+            else {
+                const { myToken } = data
+                const myData = jwtDecode(myToken)
+                const { name, myID, type } = myData
+                updateInfo({ name, myID, type })
+            }
+        }).catch(err => console.log(err))
+    }, [userDetails.name])
+    useEffect(() => {
+        if (userDetails.type === 'student') {
+            navigate('/allquizes')
         }
-    }, [])
+    }, [userDetails.type])
     if (loading) {
         return <Loading />
     }
-
     return (
-        <div className="card mt-3" style={{
+        <div className="card shadow" style={{
+            backgroundColor: '#fff',
             width: '90%',
             paddingBlock: '1.5rem',
             paddingInline: '2rem',
@@ -126,17 +144,16 @@ const Createquiz = () => {
                                     name='name'
                                     id='name'
                                 />
+                                <p className='fw-lighter text-secondary mb-0 mt-3 fs-5'>After each question click Save !</p>
                             </div>
 
                         </div>
                         <div className='col d-flex flex-column justify-content-between'>
-                            <div
-                                // style={{
-                                //     width: '56%',
-                                // }}
-                                className='d-flex mb-2 align-items-start justify-content-start'>
-                                <div class="listCheck">
-                                    <FontAwesomeIcon className='fa-lg' icon={faListCheck} />
+                            <div className='d-flex mb-2 align-items-start justify-content-start'>
+                                <div
+                                    style={{ backgroundColor: 'var(--pending)' }}
+                                    className="listCheck">
+                                    <FontAwesomeIcon className='px-1 fa-lg' icon={faListCheck} />
                                 </div>
                                 <h5
                                     style={{
@@ -145,13 +162,11 @@ const Createquiz = () => {
                                     className='ms-3 mb-0 fw-light'>Write the name of your Quiz
                                 </h5>
                             </div>
-                            <div
-                                // style={{
-                                //     width: '75%',
-                                // }}
-                                className='d-flex mb-2 align-items-start justify-content-start'>
-                                <div class="listCheck">
-                                    <FontAwesomeIcon className='fa-lg' icon={faListCheck} />
+                            <div className='d-flex mb-2 align-items-start justify-content-start'>
+                                <div
+                                    style={{ backgroundColor: 'var(--pending)' }}
+                                    className="listCheck">
+                                    <FontAwesomeIcon className='px-1 fa-lg' icon={faListCheck} />
                                 </div>
                                 <h5
                                     style={{
@@ -160,13 +175,11 @@ const Createquiz = () => {
                                     className='ms-3 mb-0 fw-light'>Type the question and the right answer
                                 </h5>
                             </div>
-                            <div
-                                // style={{
-                                //     width: '78%',
-                                // }}
-                                className='d-flex align-items-start justify-content-start'>
-                                <div class="listCheck">
-                                    <FontAwesomeIcon className='fa-lg' icon={faListCheck} />
+                            <div className='d-flex align-items-start justify-content-start'>
+                                <div
+                                    style={{ backgroundColor: 'var(--pending)' }}
+                                    className="listCheck">
+                                    <FontAwesomeIcon className='px-1 fa-lg' icon={faListCheck} />
                                 </div>
                                 <h5
                                     style={{
@@ -208,7 +221,8 @@ const Createquiz = () => {
                             </div>
 
                         </div>
-                        <div className="d-flex justify-content-start align-items-end gap-3">
+                        <div
+                            className="col small-win d-flex align-items-end gap-3">
                             <button
                                 onClick={handleSave}
                                 style={{
@@ -219,7 +233,7 @@ const Createquiz = () => {
                                     width: '100%',
                                     height: '60%'
                                 }}
-                                className="my-newBtns">Save</button>
+                                className="my-newBtns rounded shadow-sm">Save</button>
                             <button
                                 onClick={handleDelete}
                                 style={{
@@ -230,13 +244,14 @@ const Createquiz = () => {
                                     width: '100%',
                                     height: '60%'
                                 }}
-                                className="my-newBtns">Clear</button>
+                                className="my-newBtns rounded shadow-sm">Clear</button>
                         </div>
                     </div>
                     {submitCon && < div className='row mt-5 row-cols-1'
                     >
                         <div className="d-flex justify-content-start align-items-end gap-3">
                             <button
+                                style={{ width: '50%', marginInline: 'auto' }}
                                 onClick={handleSubmit}
                                 className="my-new-btn-submit">Submit your Quiz !</button>
                         </div>

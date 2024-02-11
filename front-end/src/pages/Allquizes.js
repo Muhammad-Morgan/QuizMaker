@@ -6,9 +6,10 @@ import Loading from '../components/Loading'
 import axios from 'axios'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUser } from '@fortawesome/free-solid-svg-icons'
+import { jwtDecode } from 'jwt-decode'
 
 const Allquizes = () => {
-    const { loading, startLoading, endLoading } = useGlobalContext()
+    const { loading, startLoading, endLoading, userDetails, updateInfo } = useGlobalContext()
     const navigate = useNavigate()
     const [quiz, setQuiz] = useState({
         name: '',
@@ -33,7 +34,7 @@ const Allquizes = () => {
         })
         axios.get(`http://localhost:5000/filterquizname?quizname=${value}`).then(({ data }) => {
             setAllQuizez(data)
-        }).catch(err=>console.log(err))
+        }).catch(err => console.log(err))
     }
     const handleChangeAuthor = (e) => {
         const name = e.target.name
@@ -44,7 +45,7 @@ const Allquizes = () => {
         })
         axios.get(`http://localhost:5000/filterauthorname?authorname=${value}`).then(({ data }) => {
             setAllQuizez(data)
-        }).catch(err=>console.log(err))
+        }).catch(err => console.log(err))
     }
     const clearBtn = (e) => {
         e.preventDefault()
@@ -54,20 +55,35 @@ const Allquizes = () => {
         })
         getQuizez()
     }
-    useEffect(() => { getQuizez() }, [])
     useEffect(() => {
-        var id = localStorage.getItem('localID')
-        if (loading === false && (id === '')) {
-            navigate('/login')
+        var localToken = localStorage.getItem('localToken')
+        axios.get(`http://localhost:5000/auth?token=${localToken}`).then(({ data }) => {
+            const { type, myToken } = data
+            if (type === 'failed') {
+                navigate('/login')
+            } else {
+                const myData = jwtDecode(myToken)
+                const { name, myID } = myData
+                updateInfo({
+                    name,
+                    myID,
+                    type: myData.type
+                })
+            }
+        }).catch(err => console.log(err))
+    }, [userDetails.name])
+    useEffect(() => {
+        if (userDetails.type === 'instructor') {
+            navigate('/createquiz')
         }
-    }, [])
+    }, [userDetails.type])
+    useEffect(() => { getQuizez() }, [])
     if (loading) {
         return <Loading />
     }
-
     return (
         <div className=' container-fluid'>
-            <div className="card mb-4 mt-3" style={{
+            <div className="card mb-4 mt-3 shadow" style={{
                 maxWidth: '1150px',
                 width: '90%',
                 marginInline: 'auto',
@@ -75,11 +91,12 @@ const Allquizes = () => {
                 paddingBlock: '1.5rem',
                 paddingInline: '1rem',
                 border: 'none',
+                backgroundColor: '#fff'
             }}>
                 <div className="card-body">
                     <div className='row row-cols-1 row-cols-md-2'>
                         <div className='col'>
-                            <h5 className="fs-5">Find a Quiz</h5>
+                            <h5 className="fs-5 fw-light">Find a Quiz</h5>
                             <div
                             >
                                 <input
@@ -94,7 +111,7 @@ const Allquizes = () => {
 
                         </div>
                         <div className='col'>
-                            <h5 className="fs-5">Search with author name</h5>
+                            <h5 className="fs-5 fw-light">Search with author name</h5>
                             <div
                             >
                                 <input
@@ -127,12 +144,11 @@ const Allquizes = () => {
                     border: 'none',
                 }}
             >
-                <h3 className='ms-2'
+                <h3 className='ms-2 text-secondary'
                     style={{
                         fontSize: '1.3rem',
-                        color: 'var(--navbar-color)'
                     }}
-                >{allQuizez.length} Quizez</h3>
+                >{allQuizez.length} Quiz</h3>
                 <div className='row row-cols-1 row-cols-md-2'>
                     {allQuizez?.map((quiz) => {
                         const { _id, name, creatorName } = quiz
@@ -143,9 +159,11 @@ const Allquizes = () => {
                                     style={{
                                         boxShadow: '1px 1px 2px 1px rgba(0,0,0,.1)',
                                         border: 'none',
-                                        textDecoration: 'none'
+                                        textDecoration: 'none',
+                                        marginInline: '0',
+                                        width: '100%'
                                     }}
-                                    className="card">
+                                    className="card rounded shadow-sm">
                                     <div
                                         style={{
                                             backgroundColor: '#fff'
@@ -153,10 +171,10 @@ const Allquizes = () => {
                                         className="card-header">
                                         <div
                                             style={{
-                                                width: '85%'
+                                                width: '100%'
                                             }}
                                             className='d-flex justify-content-between align-items-center'>
-                                            <h3 className='text-capitalize'>{name}</h3>
+                                            <h4 className='text-capitalize fw-normal'>{name}</h4>
 
                                             <h3
                                                 style={{
@@ -177,23 +195,27 @@ const Allquizes = () => {
                                     </div>
                                     <div className="card-body"
                                         style={{
-                                            width: '85%'
+                                            width: '100%',
+                                            backgroundColor: '#fff',
+                                            borderBottomLeftRadius: '5px',
+                                            borderBottomRightRadius: '5px',
                                         }}
                                     >
-                                        <div className='d-flex mb-4 justify-content-between align-items-center'>
+                                        <div style={{
+                                            width: '97%'
+                                        }} className='d-flex mb-4 justify-content-between align-items-center'>
                                             <h4 style={{
-                                                color: 'var(--text-color)'
-                                            }}>Created by</h4>
-                                            <h4 className='text-capitalize' style={{
-                                                color: 'var(--primary-color-2)'
-                                            }}>{creatorName} <FontAwesomeIcon icon={faUser} /></h4>
+                                                color: 'var(--text-color)',
+                                            }} className='fw-light'>Created by</h4>
+                                            <h4 className='text-capitalize fw-light text-primary-emphasis'>{creatorName} <FontAwesomeIcon icon={faUser} /></h4>
                                         </div>
                                         <div className='d-flex justify-content-between align-items-center'>
 
                                             <div className="d-flex justify-content-between gap-3">
                                                 <Link
+                                                style={{fontSize: '1rem'}}
                                                     to={`/quizez/${_id}`}
-                                                    className="my-newBtns-take">Take quiz</Link>
+                                                    className="my-newBtns-take px-3">Take quiz</Link>
                                             </div>
 
                                         </div>

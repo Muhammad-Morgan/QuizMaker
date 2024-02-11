@@ -5,10 +5,10 @@
   --text-color: #394E6A;
   --text-s: #608cb4;
   --white-off: rgb(199, 199, 199);
-  --white-less-off: rgb(226, 224, 224);
+  --white-less-off: rgb(255, 255, 255);
   --primary-color-1: #3B82F6;
   --primary-color-2: #015ABB;
-  --primary-color-3: #b4c1d1;
+  --primary-color-3: #d2e5fc;
   --gray-color: #C7C9D1;
   --danger: #F8D7DA;
   --success: rgb(209, 231, 221);
@@ -27,15 +27,17 @@
   --declined-2: rgb(255, 238, 238);
   --screen-height: 490px;
 }
+*{
+  margin: 0;
+  padding: 0;
+}
+body{
+  --bs-body-bg: var(--primary-color-3);
+}
 html {
   font-family: "Roboto", sans-serif;
   color: var(--text-color);
   height: 100%;
-}
-
-main,
-body {
-  height: 100% !important;
 }
 
 ul {
@@ -115,7 +117,7 @@ h1 {
 }
 
 .hide-alert {
-  animation: fadeOut 1s ease-out;
+  animation: fadeOut .1s ease-out;
   opacity: 0;
   z-index: -1;
 }
@@ -283,8 +285,8 @@ h1 {
 }
 
 label {
-  font-size: 1.3rem;
-  margin-bottom: .5rem;
+  font-size: 1rem;
+  letter-spacing: 1px;
 }
 
 /* style={{width: '400px', minWidth: '350px', marginInline: 'auto', border: 'none', boxShadow: '0px 2px 1px rgba(0, 0, 0, .2)', borderRadius: '5px', borderTopColor: 'var(--text-color)', borderTopWidth: '5px', borderTopStyle: 'solid',
