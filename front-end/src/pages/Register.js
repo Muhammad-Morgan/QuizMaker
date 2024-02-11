@@ -14,7 +14,6 @@ const Register = () => {
   const handleChange = (e) => {
     const name = e.target.name
     const value = e.target.value
-    console.log(name,value)
     setUserInfo({
       ...userInfo,
       [name]: value
@@ -22,7 +21,7 @@ const Register = () => {
   }
   const handleClick = (e) => {
     e.preventDefault();
-    if (userInfo.name && userInfo.email && userInfo.password&&userInfo.type) {
+    if (userInfo.name && userInfo.email && userInfo.password && userInfo.type) {
       const newInfo = {
         ...userInfo,
         myID: new Date().getTime().toString()
