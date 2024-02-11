@@ -21,119 +21,114 @@ mongoose.connection.once('open', () => console.log('Connected to MongoDB'))
 app.get('/', (req, res) => {
     res.send("Hello Again!")
 })
-app.get('/getuserresult/:id', (req, res) => {
-    const { id } = req.params
-    Result.findOne({ myID: id }).then((result) => {
-        res.json(result)
-    }).catch(err => console.log(err))
+app.delete('/logout', (req, res) => {
+    res.json({ msg: 'Logged Out', type: 'success' })
 })
-app.get('/checkuser', (req, res) => {
-    LoggedUsers.find().then((result) => {
-        if (result.length === 0) {
-            res.json('No one is logged in')
-        }
-        if (result.length > 0) {
-            res.json(result)
-        }
-    }).catch(err => console.log(err))
-})
-app.get('/getsinglequiz', (req, res) => {
-    Quizez.findById(req.query.id).then((result) => res.json(result)).catch(err => console.log(err))
+app.get('/auth', (req, res) => {
+    const { token } = req.query
+    if (!token) {
+        res.json({ msg: 'log in again', type: 'failed' })
+    } else {
+        jwt.verify(token, process.env.SECRET_TOKEN, (err, decode) => {
+            if (err) return res.json({ msg: 'log in again', type: 'failed' })
+            return res.json({ myToken: token, type: 'success' })
+        })
+    }
 })
 app.get('/getallquizez', (req, res) => {
     Quizez.find().then((result) => res.json(result)).catch(err => console.log(err))
 })
-app.get('/getaquiz', (req,res)=>{
-    const {id} = req.query
-    Quizez.findById(id).then((result)=>{
-        res.json(result)
-    }).catch(err=>console.log(err))
+app.get('/filterquizname', (req, res) => {
+    const { quizname } = req.query
+    Quizez.find().then((result) => {
+        var newResult = result.filter((item) => item.name.includes(quizname))
+        res.json(newResult)
+    }).catch(err => console.log(err))
 })
-app.get('/filterquizname',(req,res)=>{
-    const {quizname}=req.query
-    Quizez.find().then((result)=>{
-        var newQuizes = result.filter((quiz)=>{
-            if(quiz?.name?.includes(quizname)){
-                return quiz
+app.get('/filterauthorname', (req, res) => {
+    const { authorname } = req.query
+    Quizez.find().then((result) => {
+        var newResult = result.filter((item) => item.creatorName.includes(authorname))
+        res.json(newResult)
+    }).catch(err => console.log(err))
+})
+app.get('/getsinglequiz', (req, res) => {
+    const { id } = req.query
+    Quizez.findById(id).then((result) => res.json(result)).catch(err => console.log(err))
+})
+app.get('/getuserresult', (req, res) => {
+    const { myID } = req.query
+    Result.findOne({ myID }).then((result) => res.json(result)).catch(err => console.log(err))
+})
+app.post('/submitquiz', (req, res) => {
+    const { id, userID, username } = req.query
+    const answerArray = req.body
+    Quizez.findById(id).then((result) => {
+        var newResult = result.quiz.map((item, index) => {
+            if (item.answer === answerArray[index].answer) {
+                return item
             }
         })
-        res.json(newQuizes)
-    }).catch(err=>console.log(err))
-})
-app.get('/filterauthorname',(req,res)=>{
-    const {authorname}=req.query
-    Quizez.find().then((result)=>{
-        var newQuizes = result.filter((quiz)=>{
-            if(quiz?.creatorName?.includes(authorname)){
-                return quiz
+        var mistake = result.quiz.map((item, index) => {
+            if (item.answer !== answerArray[index].answer) {
+                return item.question
             }
         })
-        res.json(newQuizes)
-    }).catch(err=>console.log(err))
+        var mistakes = mistake.filter((item) => item !== undefined)
+        var finalResult = newResult.filter((item) => item !== undefined)
+        Result.create({ finalResult: finalResult.length, quizName: result.name, myID: userID, name: username, mistakes }).then(() => res.json({ msg: 'quiz was submitted', type: 'success' })).catch(err => console.log(err))
+    }).catch(err => console.log(err))
 })
 app.post('/register', (req, res) => {
     const { newInfo } = req.body
-    Members.create(newInfo).then(() => res.json('Registered Successfully')).catch((err) => res.json(err))
-})
-app.post('/submitquiz', (req, res) => {
-    const { id, userID } = req.query
-    Quizez.findById(id).then((result) => {
-        var finalRes = []
-        var mistakes = []
-        var results = result.quiz.map((items, index) => {
-            if (items.answer === req.body[index].answer) {
-                finalRes.push(items)
-            } else { mistakes.push(items) }
-
-            return items
-        })
-        var finalResult = finalRes.length * 10
-        LoggedUsers.findOne({ myID: userID }).then((user) => {
-            const { name } = user
-            Result.create({ finalResult, mistakes, name, quizName: result.name, myID: userID })
-            res.json('done!')
-        })
-    }).catch(err => console.log(err))
+    const { myID, name, email, password, type } = newInfo
+    bcrypt.genSalt(10, function (err, salt) {
+        bcrypt.hash(password, salt, function (err, hash) {
+            Members.create({
+                myID,
+                name,
+                email,
+                password: hash,
+                type
+            }).then(() => {
+                const token = jwt.sign({ myID, name, type }, process.env.SECRET_TOKEN, { expiresIn: process.env.EXPIRY_PERIOD })
+                res.json({
+                    token,
+                    msg: 'registered successfully',
+                    type: 'success'
+                })
+            }).catch(error => console.log(error))
+        });
+    });
 })
 app.post('/login', (req, res) => {
     const { userInfo } = req.body
-    Members.find().then((resultMany) => {
-        var emailStep = resultMany.filter((user) => user.email === userInfo.email)
-        var passwordStep = emailStep.find((user) => user.password === userInfo.password)
-        console.log(passwordStep)
-        const { myID, name } = passwordStep
-        LoggedUsers.create({ myID, name }).then(() => {
-            LoggedUsers.findOne({ myID: myID }).then((result) => res.json(result)).catch(err => console.log(err))
-        }).catch(err => console.log(err))
-    }).catch((err) => res.json(err))
-})
-app.post('/quizcreated/:id', (req, res) => {
-    const { name, quiz } = req.body
-    const { id } = req.params
-    LoggedUsers.findOne({ myID: id }).then((result) => {
-        var newR = result.name.toLowerCase()
-        Quizez.create({ name, quiz, userID: id, creatorName: newR }).then(() => {
-            res.json('quiz created')
-        }).catch(err => console.log(err))
-    })
-})
-app.post('/createquiz', (req, res) => {
-    Quizez.create(req.body).then(() => res.json('success')).catch(err => console.log(err))
-})
-app.put('/addquestion', (req, res) => {
-})
-app.delete('/forcelogout', (req, res) => {
-    LoggedUsers.deleteMany().then(() => res.json('session expired!')).catch(err => console.log(err))
-})
-app.delete('/logout/:id', (req, res) => {
-    const { id } = req.params;
-    LoggedUsers.find().then((result) => {
-        var newResult = result.find((user) => user.myID === id)
-        if (newResult) {
-            LoggedUsers.findOneAndDelete({ myID: id }).then(() => res.json('logged out')).catch(err => console.log(err))
-        } else {
-            res.json('already logged out')
-        }
+    const { email, password } = userInfo
+    Members.findOne({ email }).then((result) => {
+        if (result === null) return res.json({ msg: 'no users...', type: 'danger' })
+        bcrypt.compare(password, result.password).then((resultCondition) => {
+            if (resultCondition === true) {
+                const token = jwt.sign({ myID: result.myID, name: result.name, type: result.type }, process.env.SECRET_TOKEN, { expiresIn: process.env.EXPIRY_PERIOD })
+                res.json({
+                    token,
+                    msg: 'Logged In Successfully',
+                    type: 'success'
+                })
+            } else {
+                res.json({
+                    msg: 'Wrong password',
+                    type: 'danger'
+                })
+            }
+        })
     }).catch(err => console.log(err))
+})
+app.post('/quizcreated/:myID', (req, res) => {
+    const { myID } = req.params
+    Members.findOne({ myID }).then((re) => {
+        const creatorName = re.name
+        const { name, quiz } = req.body
+        Quizez.create({ userID: myID, name, quiz, creatorName }).then(() => res.json({ msg: 'quiz created !', type: 'success' })).catch(err => console.log(err))
+    })
 })
 app.listen(5000, () => console.log('Listen on 5000'))

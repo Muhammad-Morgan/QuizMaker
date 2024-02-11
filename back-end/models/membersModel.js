@@ -5,6 +5,7 @@ const MemberSchema = new mongoose.Schema({
     name: String,
     email: String,
     password: String,
+    type: String
 })
 
 const Members = mongoose.model('Members',MemberSchema)
