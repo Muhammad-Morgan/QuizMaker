@@ -16,7 +16,7 @@ const Singlequiz = () => {
     const { id } = useParams()
     const getQuizez = async () => {
         startLoading()
-        axios.get(`http://localhost:5000/getsinglequiz?id=${id}`).then(({ data }) => {
+        axios.get(`https://quiz-maker-server.vercel.app/getsinglequiz?id=${id}`).then(({ data }) => {
             if (data) {
                 const { name, quiz } = data
                 setQuizName(name)
@@ -67,7 +67,7 @@ const Singlequiz = () => {
     }
     const handleSubmit = (e) => {
         e.preventDefault()
-        axios.post(`http://localhost:5000/submitquiz?id=${id}&userID=${userDetails.myID}&username=${userDetails.name}`, pageQuiz).then(() => {
+        axios.post(`https://quiz-maker-server.vercel.app/submitquiz?id=${id}&userID=${userDetails.myID}&username=${userDetails.name}`, pageQuiz).then(() => {
             showAlert({
                 msg: 'Results were saved',
                 type: 'success'
@@ -77,7 +77,7 @@ const Singlequiz = () => {
     }
     useEffect(() => {
         var localToken = localStorage.getItem('localToken')
-        axios.get(`http://localhost:5000/auth?token=${localToken}`).then(({ data }) => {
+        axios.get(`https://quiz-maker-server.vercel.app/auth?token=${localToken}`).then(({ data }) => {
             const { type } = data
             if (type === 'failed') {
                 const { msg } = data

@@ -66,7 +66,7 @@ const Createquiz = () => {
         const decodedToken = jwtDecode(localToken)
         if (name) {
             var lName = name.toLowerCase()
-            axios.post(`http://localhost:5000/quizcreated/${decodedToken.myID}`, { name: lName, quiz }).then(({data}) => {
+            axios.post(`https://quiz-maker-server.vercel.app/quizcreated/${decodedToken.myID}`, { name: lName, quiz }).then(({data}) => {
                 const {msg,type}=data
                 showAlert({
                     msg,
@@ -89,7 +89,7 @@ const Createquiz = () => {
     }
     useEffect(() => {
         var localToken = localStorage.getItem('localToken')
-        axios.get(`http://localhost:5000/auth?token=${localToken}`).then(({ data }) => {
+        axios.get(`https://quiz-maker-server.vercel.app/auth?token=${localToken}`).then(({ data }) => {
             const { type } = data
             if (type === 'failed') {
                 const { msg } = data

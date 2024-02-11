@@ -18,7 +18,7 @@ const Allquizes = () => {
     const [allQuizez, setAllQuizez] = useState([])
     const getQuizez = async () => {
         startLoading()
-        axios.get('http://localhost:5000/getallquizez').then(({ data }) => {
+        axios.get('https://quiz-maker-server.vercel.app/getallquizez').then(({ data }) => {
             if (data) {
                 setAllQuizez(data)
             }
@@ -32,7 +32,7 @@ const Allquizes = () => {
             ...quiz,
             [name]: value
         })
-        axios.get(`http://localhost:5000/filterquizname?quizname=${value}`).then(({ data }) => {
+        axios.get(`https://quiz-maker-server.vercel.app/filterquizname?quizname=${value}`).then(({ data }) => {
             setAllQuizez(data)
         }).catch(err => console.log(err))
     }
@@ -43,7 +43,7 @@ const Allquizes = () => {
             ...quiz,
             [name]: value
         })
-        axios.get(`http://localhost:5000/filterauthorname?authorname=${value}`).then(({ data }) => {
+        axios.get(`https://quiz-maker-server.vercel.app/filterauthorname?authorname=${value}`).then(({ data }) => {
             setAllQuizez(data)
         }).catch(err => console.log(err))
     }
@@ -57,7 +57,7 @@ const Allquizes = () => {
     }
     useEffect(() => {
         var localToken = localStorage.getItem('localToken')
-        axios.get(`http://localhost:5000/auth?token=${localToken}`).then(({ data }) => {
+        axios.get(`https://quiz-maker-server.vercel.app/auth?token=${localToken}`).then(({ data }) => {
             const { type, myToken } = data
             if (type === 'failed') {
                 navigate('/login')

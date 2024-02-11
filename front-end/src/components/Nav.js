@@ -11,7 +11,7 @@ const Nav = () => {
     const [links, setLinks] = useState(false)
     const handleLogOut = (e) => {
         e.preventDefault()
-        axios.delete(`http://localhost:5000/logout`).then(({ data }) => {
+        axios.delete(`https://quiz-maker-server.vercel.app/logout`).then(({ data }) => {
             const { msg, type } = data
             showAlert({
                 msg,

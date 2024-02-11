@@ -18,7 +18,7 @@ const Results = () => {
   })
   const getUserResult = async () => {
     startLoading()
-    axios.get(`http://localhost:5000/getuserresult?myID=${id}`).then(({ data }) => {
+    axios.get(`https://quiz-maker-server.vercel.app/getuserresult?myID=${id}`).then(({ data }) => {
       const { name, quizName, finalResult, mistakes } = data
       setUserResult({
         ...userResult,
@@ -32,7 +32,7 @@ const Results = () => {
   }
   useEffect(() => {
     var localToken = localStorage.getItem('localToken')
-    axios.get(`http://localhost:5000/auth?token=${localToken}`).then(({ data }) => {
+    axios.get(`https://quiz-maker-server.vercel.app/auth?token=${localToken}`).then(({ data }) => {
         const { type } = data
         if (type === 'failed') {
             const { msg } = data

@@ -27,7 +27,7 @@ const Register = () => {
         ...userInfo,
         myID: new Date().getTime().toString()
       }
-      axios.post('http://localhost:5000/register', { newInfo }).then(({data}) => {
+      axios.post('https://quiz-maker-server.vercel.app/register', { newInfo }).then(({data}) => {
       const {token,msg,type}=data
       if(type === 'success'){
         localStorage.setItem('localToken', token)

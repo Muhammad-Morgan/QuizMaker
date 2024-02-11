@@ -21,7 +21,7 @@ const Login = () => {
   const handleClick = (e) => {
     e.preventDefault()
     if (userInfo.email && userInfo.password) {
-      axios.post(`http://localhost:5000/login`, { userInfo }).then(({ data }) => {
+      axios.post(`https://quiz-maker-server.vercel.app/login`, { userInfo }).then(({ data }) => {
         const { type } = data
         if (type === 'danger') {
           const { msg } = data
