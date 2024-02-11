@@ -19,7 +19,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-mongoose.connect(process.env.URI)
+mongoose.connect('mongodb+srv://muhammad:helloworld123@jobster.r7jsbjp.mongodb.net/quiz?retryWrites=true&w=majority')
 mongoose.connection.once('open', () => console.log('Connected to MongoDB'))
 
 app.get('/', (req, res) => {
@@ -33,7 +33,7 @@ app.get('/auth', (req, res) => {
     if (!token) {
         res.json({ msg: 'log in again', type: 'failed' })
     } else {
-        jwt.verify(token, process.env.SECRET_TOKEN, (err, decode) => {
+        jwt.verify(token, 'SECRET%msg%', (err, decode) => {
             if (err) return res.json({ msg: 'log in again', type: 'failed' })
             return res.json({ myToken: token, type: 'success' })
         })
@@ -95,7 +95,7 @@ app.post('/register', (req, res) => {
                 password: hash,
                 type
             }).then(() => {
-                const token = jwt.sign({ myID, name, type }, process.env.SECRET_TOKEN, { expiresIn: process.env.EXPIRY_PERIOD })
+                const token = jwt.sign({ myID, name, type }, 'SECRET%msg%', { expiresIn: '1h' })
                 res.json({
                     token,
                     msg: 'registered successfully',
@@ -112,7 +112,7 @@ app.post('/login', (req, res) => {
         if (result === null) return res.json({ msg: 'no users...', type: 'danger' })
         bcrypt.compare(password, result.password).then((resultCondition) => {
             if (resultCondition === true) {
-                const token = jwt.sign({ myID: result.myID, name: result.name, type: result.type }, process.env.SECRET_TOKEN, { expiresIn: process.env.EXPIRY_PERIOD })
+                const token = jwt.sign({ myID: result.myID, name: result.name, type: result.type }, 'SECRET%msg%', { expiresIn: '1h' })
                 res.json({
                     token,
                     msg: 'Logged In Successfully',
